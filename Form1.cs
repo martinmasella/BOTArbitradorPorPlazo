@@ -36,7 +36,6 @@ namespace BOTArbitradorPorPlazo
         public frmBOT()
         {
             InitializeComponent();
-            this.Top = 10;
         }
 
         private void frmBOT_Load(object sender, EventArgs e)
