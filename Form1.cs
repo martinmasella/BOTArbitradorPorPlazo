@@ -643,7 +643,7 @@ namespace BOTArbitradorPorPlazo
             if (operacionCompra != "Error")
             {
                 string estadooperacion = "";
-                int intentos = 38;
+                int intentos = 32;
 
                 for (int i = 1; i <= intentos; i++)
                 {
