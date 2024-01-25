@@ -37,7 +37,7 @@ namespace BOTArbitradorPorPlazo
         {
             InitializeComponent();
         }
-
+                                                                                   
         private void frmBOT_Load(object sender, EventArgs e)
         {
             this.Top = 10;
@@ -73,7 +73,7 @@ namespace BOTArbitradorPorPlazo
                 txtUsuarioVETA.Text = configuracion.GetSection("MiConfiguracion:UserVETA").Value;
                 txtClaveVETA.Text = configuracion.GetSection("MiConfiguracion:ClaveVETA").Value;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
 
             }
@@ -140,14 +140,13 @@ namespace BOTArbitradorPorPlazo
 
             tickersIOL.Add("PBA25");
             tickersIOL.Add("PR13");
-            tickersIOL.Add("T2X3");
             tickersIOL.Add("TX24");
             tickersIOL.Add("T2X4");
             tickersIOL.Add("TX26");
             tickersIOL.Add("TX28");
-            tickersIOL.Add("TO23");
             tickersIOL.Add("TO26");
-            tickersIOL.Add("TDS23");
+            tickersIOL.Add("TDG24");
+            tickersIOL.Add("TDA24");
             tickersIOL.Add("TDF24");
             //Acciones
             tickersIOL.Add("-ACCs-");
@@ -232,7 +231,7 @@ namespace BOTArbitradorPorPlazo
             tickersIOL.Add("AZN");
             tickersIOL.Add("BA");
             tickersIOL.Add("BA.C");
-            //tickersIOL.Add("BABA");
+            tickersIOL.Add("BABA");
             tickersIOL.Add("BB");
             tickersIOL.Add("BBD");
             tickersIOL.Add("BBV");
@@ -336,7 +335,7 @@ namespace BOTArbitradorPorPlazo
 
             tickersIOL.Add("AUSO");
             //AddTicker("302", "BHIP");
-            tickersIOL.Add("BOLT");
+            //tickersIOL.Add("BOLT");
             tickersIOL.Add("CEPU");
             tickersIOL.Add("COME");
             tickersIOL.Add("CRES");
@@ -403,7 +402,7 @@ namespace BOTArbitradorPorPlazo
                     dynamic json = JObject.Parse(response);
                     bearer = "Bearer " + json.access_token;
                     expires = DateTime.Now.AddSeconds((double)json.expires_in - 100);
-                    refresh = json.refresh_token;
+                    refresh = json.refresh_token;                           
                     ToLog(bearer);
                 }
                 else
@@ -643,7 +642,7 @@ namespace BOTArbitradorPorPlazo
             if (operacionCompra != "Error")
             {
                 string estadooperacion = "";
-                int intentos = 32;
+                int intentos = 24;
 
                 for (int i = 1; i <= intentos; i++)
                 {
