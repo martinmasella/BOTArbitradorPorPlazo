@@ -5,6 +5,7 @@ using System.Media;
 using System.Net;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using System.Configuration;
 
 namespace BOTArbitradorPorPlazo
 {
@@ -16,7 +17,7 @@ namespace BOTArbitradorPorPlazo
         const string sURLVETA = "https://api.veta.xoms.com.ar";
         const string prefijoPrimary= "MERV - XMEV - ";
         const string sufijoCI = " - CI";
-        const string sufijo48 = " - 48hs";
+        const string sufijo24 = " - 24hs";
 
 
         string tokenVETA;
@@ -31,7 +32,7 @@ namespace BOTArbitradorPorPlazo
         List<string> tickersIOL;
         List<Ticker> tickers;
         List<string> tickersCI;
-        List<string> tickers48;
+        List<string> tickers24;
 
         public frmBOT()
         {
@@ -41,7 +42,7 @@ namespace BOTArbitradorPorPlazo
         private void frmBOT_Load(object sender, EventArgs e)
         {
             this.Top = 10;
-            this.Text = "PlazoBOT Arbitrador CI contra 48hs - Copyright 2020 Tinchex Capital";
+            this.Text = "PlazoBOT Arbitrador - Copyright 2020 Tinchex Capital";
                         
             DoubleBuffered = true;
             CheckForIllegalCrossThreadCalls = false;
@@ -377,7 +378,7 @@ namespace BOTArbitradorPorPlazo
             FillListaTickers();
 
             var instrumentos = allInstruments.Where(c => tickersCI.Contains(c.Symbol))
-                .Concat(allInstruments.Where(c => tickers48.Contains(c.Symbol)));
+                .Concat(allInstruments.Where(c => tickers24.Contains(c.Symbol)));
 
             using var socket = api.CreateMarketDataSocket(instrumentos, entries, 1, 1);
             socket.OnData = OnMarketData;
@@ -485,9 +486,9 @@ namespace BOTArbitradorPorPlazo
         {
             foreach (string tickerIOL in tickersIOL)
             {
-                tickers.Add(new Ticker(tickerIOL, prefijoPrimary + tickerIOL + sufijoCI, prefijoPrimary + tickerIOL + sufijo48));
+                tickers.Add(new Ticker(tickerIOL, prefijoPrimary + tickerIOL + sufijoCI, prefijoPrimary + tickerIOL + sufijo24));
                 tickersCI = tickers.Select(t => t.PrimaryCI).ToList();
-                tickers48 = tickers.Select(t => t.Primary48).ToList();
+                tickers24 = tickers.Select(t => t.Primary24).ToList();
             }
         }
 
@@ -519,12 +520,12 @@ namespace BOTArbitradorPorPlazo
             }
             DateTime dt = DateTimeOffset.FromUnixTimeMilliseconds(marketData.Timestamp).DateTime;
 
-            if (ticker.EndsWith("48hs"))
+            if (ticker.EndsWith("24hs"))
             {
                 for (int j = 0; j < grdPanel.Rows.Count; j++)
                 {
                     string left = grdPanel.Rows[j].Cells[0].Value.ToString();
-                    string right = tickers.Where(t => t.Primary48 == ticker).Select(t => t.IOL).First().ToString();
+                    string right = tickers.Where(t => t.Primary24 == ticker).Select(t => t.IOL).First().ToString();
                     if (left == right)
                     {
                         if (bidSize == 0)
@@ -585,18 +586,20 @@ namespace BOTArbitradorPorPlazo
             grdPanel.Columns.Add("PVCI", "PVCI");
             grdPanel.Columns[3].Width = 70;
             grdPanel.Columns[3].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-            grdPanel.Columns.Add("PC48", "PC48");
+            grdPanel.Columns.Add("PC24", "PC24");
             grdPanel.Columns[4].Width = 70;
             grdPanel.Columns[4].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
-            grdPanel.Columns.Add("QC48", "QC48");
+            grdPanel.Columns.Add("QC24", "QC24");
             grdPanel.Columns[5].Width = 70;
             grdPanel.Columns[5].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             grdPanel.Columns.Add("Ratio", "Ratio");
             grdPanel.Columns[6].Width = 60;
             grdPanel.Columns[6].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-
+            
+            grdPanel.RowHeadersWidth = 4;
+            
             foreach (var ticker in tickersIOL)
             {
                 grdPanel.Rows.Add(ticker);
@@ -737,7 +740,7 @@ namespace BOTArbitradorPorPlazo
             ToLog("Vendiendo " + cantidad + " " + simbolo + " a " + precio);
             Application.DoEvents();
             string validez = DateTime.Now.Year + "-" + DateTime.Now.Month + "-" + DateTime.Now.Day + "T17:59:59.000Z";
-            string postData = "mercado=bCBA&simbolo=" + simbolo + "&cantidad=" + cantidad + "&precio=" + precio + "&validez=" + validez + "&plazo=t2";
+            string postData = "mercado=bCBA&simbolo=" + simbolo + "&cantidad=" + cantidad + "&precio=" + precio + "&validez=" + validez + "&plazo=t1";
             string response;
             response = GetResponsePOST(sURL + "/api/v2/operar/Vender", postData);
             dynamic json = JObject.Parse(response);
@@ -756,9 +759,9 @@ namespace BOTArbitradorPorPlazo
         {
             Boolean esBono = false;
             string PIV = "";
-            string P48C = "";
+            string P24C = "";
             string QIV = "";
-            string Q48C = "";
+            string Q24C = "";
             int Q;
             string simbolo = grdPanel.Rows[i].Cells[0].Value.ToString();
             grdPanel.ClearSelection();
@@ -776,14 +779,14 @@ namespace BOTArbitradorPorPlazo
             }
             if (grdPanel.Rows[i].Cells[4].Value != null)
             {
-                P48C = grdPanel.Rows[i].Cells[4].Value.ToString();
-                Q48C = grdPanel.Rows[i].Cells[5].Value.ToString();
+                P24C = grdPanel.Rows[i].Cells[4].Value.ToString();
+                Q24C = grdPanel.Rows[i].Cells[5].Value.ToString();
             }
-            if (PIV == "" || P48C == "")
+            if (PIV == "" || P24C == "")
             {
                 grdPanel.Rows[i].Cells[6].Value = "";
             }
-            else if (PIV != "" && P48C != "")
+            else if (PIV != "" && P24C != "")
             {
                 if (simbolo == "AL30" || simbolo == "AL29" || simbolo == "AL35" || simbolo == "AE38" ||
                     simbolo == "AL41" || simbolo == "TC23" || simbolo == "TC24" || simbolo == "CO26" ||
@@ -802,8 +805,8 @@ namespace BOTArbitradorPorPlazo
                     esBono = false;
                 }
 
-                double porcentual = Math.Round(100 - ((Convert.ToDouble(PIV) / Convert.ToDouble(P48C)) * 100), 4);
-                grdPanel.Rows[i].Cells[6].Value = porcentual;
+                double porcentual = Math.Round(100 - ((Convert.ToDouble(PIV) / Convert.ToDouble(P24C)) * 100), 4);
+                grdPanel.Rows[i].Cells[6].Value = Math.Round(porcentual,2);
 
                 if (porcentual > 0)
                 {
@@ -832,9 +835,9 @@ namespace BOTArbitradorPorPlazo
                     if (chkAuto.Checked)
                     {
                         string cant;
-                        if (int.Parse(Q48C) < int.Parse(QIV))
+                        if (int.Parse(Q24C) < int.Parse(QIV))
                         {
-                            Q = int.Parse(Q48C);
+                            Q = int.Parse(Q24C);
                         }
                         else
                         {
@@ -858,7 +861,7 @@ namespace BOTArbitradorPorPlazo
                         }
                         if (int.Parse(DateTime.Now.ToString("HHmm")) >= 1105 && int.Parse(DateTime.Now.ToString("HHmm")) <= 1625)
                         {
-                            Operar(simbolo, cant, PIV, P48C);
+                            Operar(simbolo, cant, PIV, P24C);
                         }
                     }
                 }
@@ -876,6 +879,6 @@ namespace BOTArbitradorPorPlazo
         }
     }
 
-    record Ticker(string IOL, string PrimaryCI, string Primary48);
+    record Ticker(string IOL, string PrimaryCI, string Primary24);
     
 }
