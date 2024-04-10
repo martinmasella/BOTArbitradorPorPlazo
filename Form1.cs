@@ -214,6 +214,26 @@ namespace BOTArbitradorPorPlazo
             tickersIOL.Add("UBER");
             tickersIOL.Add("UPST");
 
+            tickersIOL.Add("-NCEDs3-");
+
+            tickersIOL.Add("ACN");
+            tickersIOL.Add("CCL");
+            tickersIOL.Add("BKNG");
+            tickersIOL.Add("CVS");
+            tickersIOL.Add("DAL");
+            tickersIOL.Add("MDLZ");
+            tickersIOL.Add("MRNA");
+            tickersIOL.Add("PINS");
+            tickersIOL.Add("PM");
+            tickersIOL.Add("RACE");
+            tickersIOL.Add("RIOT");
+            tickersIOL.Add("ROKU");
+            tickersIOL.Add("SCHW");
+            tickersIOL.Add("SPCE");
+            tickersIOL.Add("STLA");
+            tickersIOL.Add("SWKS");
+            tickersIOL.Add("TMUS");
+
             //CEDEARs viejos
             tickersIOL.Add("-OCEDs-");
 
