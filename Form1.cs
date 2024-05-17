@@ -106,7 +106,7 @@ namespace BOTArbitradorPorPlazo
             //AddTicker("99934", "AL29D");
             //AddTicker("99935", "AL29C");
 
-            tickersIOL.Add("AL30");
+            //tickersIOL.Add("AL30");
             //AddTicker("99926", "AL30D");
             //AddTicker("99927", "AL30C");
 
@@ -128,7 +128,7 @@ namespace BOTArbitradorPorPlazo
             //AddTicker("99957", "GD29D");
             //AddTicker("99956", "GD29C");
 
-            tickersIOL.Add("GD30");
+            //tickersIOL.Add("GD30");
             //AddTicker("99958", "GD30D");
             //AddTicker("99963", "GD30C");
             tickersIOL.Add("GD35");
@@ -140,15 +140,10 @@ namespace BOTArbitradorPorPlazo
             tickersIOL.Add("GD46");
 
             tickersIOL.Add("PBA25");
-            tickersIOL.Add("PR13");
-            tickersIOL.Add("TX24");
-            tickersIOL.Add("T2X4");
             tickersIOL.Add("TX26");
             tickersIOL.Add("TX28");
             tickersIOL.Add("TO26");
             tickersIOL.Add("TDG24");
-            tickersIOL.Add("TDA24");
-            tickersIOL.Add("TDF24");
             //Acciones
             tickersIOL.Add("-ACCs-");
 
@@ -732,19 +727,27 @@ namespace BOTArbitradorPorPlazo
                 response = GetResponsePOST(sURL + "/api/v2/operar/Comprar", postData);
                 if (response.Contains("Error") || response.Contains("Se exced") || response.Contains("No se puede"))
                 {
+                    ToLog(response);
                     return "Error";
                 }
                 else
-                {
-                    dynamic json = JObject.Parse(response);
-                    string operacion = json.numeroOperacion;
-                    if (json.ok == "false")
+                {   try
                     {
-                        return "Error";
+                        dynamic json = JObject.Parse(response);
+                        string operacion = json.numeroOperacion;
+                        if (json.ok == "false")
+                        {
+                            return "Error";
+                        }
+                        else
+                        {
+                            return operacion;
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        return operacion;
+                        ToLog(response);
+                        return "Error";
                     }
                 }
             }
