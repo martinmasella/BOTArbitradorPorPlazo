@@ -610,7 +610,7 @@ namespace BOTArbitradorPorPlazo
             grdPanel.Columns[5].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             grdPanel.Columns.Add("Ratio", "Ratio");
-            grdPanel.Columns[6].Width = 60;
+            grdPanel.Columns[6].Width = 70;
             grdPanel.Columns[6].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             
             grdPanel.RowHeadersWidth = 4;
