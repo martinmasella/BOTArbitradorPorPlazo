@@ -211,7 +211,7 @@ namespace BOTArbitradorPorPlazo
 
             tickersIOL.Add("-NCEDs3-");
 
-            tickersIOL.Add("ACN");
+            //tickersIOL.Add("ACN");
             tickersIOL.Add("CCL");
             tickersIOL.Add("BKNG");
             tickersIOL.Add("CVS");
@@ -349,22 +349,22 @@ namespace BOTArbitradorPorPlazo
             //Galpones
             tickersIOL.Add("-GALPs-");
 
-            tickersIOL.Add("AUSO");
+            //tickersIOL.Add("AUSO");
             //AddTicker("302", "BHIP");
             //tickersIOL.Add("BOLT");
             tickersIOL.Add("CEPU");
             tickersIOL.Add("COME");
             tickersIOL.Add("CRES");
             tickersIOL.Add("CTIO");
-            tickersIOL.Add("CVH");
+            //tickersIOL.Add("CVH");
             tickersIOL.Add("EDN");
             tickersIOL.Add("GAMI");
-            tickersIOL.Add("GCDI");
-            tickersIOL.Add("HARG");
+            //tickersIOL.Add("GCDI");
+            //tickersIOL.Add("HARG");
             tickersIOL.Add("LOMA");
             tickersIOL.Add("MIRG");
-            tickersIOL.Add("OEST");
-            tickersIOL.Add("SAMI");
+            //tickersIOL.Add("OEST");
+            //tickersIOL.Add("SAMI");
             tickersIOL.Add("TECO2");
             tickersIOL.Add("TGNO4");
             tickersIOL.Add("TGSU2");
