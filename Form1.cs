@@ -406,7 +406,7 @@ namespace BOTArbitradorPorPlazo
 
         }
 
-        private void LoginIOL()
+        private async void LoginIOL()
         {
             try
             {
@@ -417,7 +417,7 @@ namespace BOTArbitradorPorPlazo
                     response = GetResponsePOST(sURL + "/token", postData);
                     dynamic json = JObject.Parse(response);
                     bearer = "Bearer " + json.access_token;
-                    expires = DateTime.Now.AddSeconds((double)json.expires_in - 100);
+                    expires = DateTime.Now.AddSeconds((double)json.expires_in - 300);
                     refresh = json.refresh_token;                           
                     ToLog(bearer);
                 }
@@ -622,13 +622,13 @@ namespace BOTArbitradorPorPlazo
 
         }
 
-        private void ToLog(string s)
+        private async void ToLog(string s)
         {
             lbLog.Items.Add(DateTime.Now.ToLongTimeString() + ": " + s);
             lbLog.SelectedIndex = lbLog.Items.Count - 1;
         }
 
-        private void tmr_Tick(object sender, EventArgs e)
+        private async void tmr_Tick(object sender, EventArgs e)
         {
             if (txtUsuarioIOL.Text != string.Empty && txtClaveIOL.Text != string.Empty)
             {
@@ -638,8 +638,8 @@ namespace BOTArbitradorPorPlazo
         }
 
 
-        private void Operar(string simbolo, string q, string PC, string PV)
-        {
+        private async void Operar(string simbolo, string q, string PC, string PV)
+            {
             int cifrasRedondeo = 0;
             LoginIOL();
             ToLog("Iniciando " + simbolo);
@@ -656,7 +656,7 @@ namespace BOTArbitradorPorPlazo
             preventivoVenta = Math.Round(preventivoVenta - ((preventivoVenta / 100) * 0.1), cifrasRedondeo);
             PV = preventivoVenta.ToString().Replace(",", ".");
 
-            string operacionCompra = Comprar(simbolo, q, PC);
+            string operacionCompra = await Comprar(simbolo, q, PC);
             if (operacionCompra != "Error")
             {
                 string estadooperacion = "";
@@ -715,12 +715,12 @@ namespace BOTArbitradorPorPlazo
             }
         }
 
-        private string Comprar(string simbolo, string cantidad, string precio)
+        private async Task<string> Comprar(string simbolo, string cantidad, string precio)
         {
             if (int.Parse(cantidad)>0)
             {
                 ToLog("Comprando " + cantidad + " " + simbolo + " a " + precio);
-                Application.DoEvents();
+                await Task.Run(() => Application.DoEvents());
                 string validez = DateTime.Now.Year + "-" + DateTime.Now.Month + "-" + DateTime.Now.Day + "T17:59:59.000Z";
                 string postData = "mercado=bCBA&simbolo=" + simbolo + "&cantidad=" + cantidad + "&precio=" + precio + "&validez=" + validez + "&plazo=t0";
                 string response;
@@ -778,7 +778,7 @@ namespace BOTArbitradorPorPlazo
             }
         }
 
-        private void refreshRatio(int i)
+        private async void refreshRatio(int i)
         {
             Boolean esBono = false;
             string PIV = "";
