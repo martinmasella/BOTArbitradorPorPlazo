@@ -882,7 +882,7 @@ namespace BOTArbitradorPorPlazo
                                 cant = Math.Floor(presupuesto / double.Parse(PIV)).ToString();
                             }
                         }
-                        if (int.Parse(DateTime.Now.ToString("HHmm")) >= 1105 && int.Parse(DateTime.Now.ToString("HHmm")) <= 1625)
+                        if (int.Parse(DateTime.Now.ToString("HHmm")) >= 1035 && int.Parse(DateTime.Now.ToString("HHmm")) <= 1655)
                         {
                             Operar(simbolo, cant, PIV, P24C);
                         }
