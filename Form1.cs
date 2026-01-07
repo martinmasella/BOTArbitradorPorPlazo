@@ -139,11 +139,17 @@ namespace BOTArbitradorPorPlazo
             tickersIOL.Add("GD41");
             tickersIOL.Add("GD46");
 
-            tickersIOL.Add("PBA25");
+            //tickersIOL.Add("PBA25");
             tickersIOL.Add("TX26");
             tickersIOL.Add("TX28");
             tickersIOL.Add("TO26");
-            tickersIOL.Add("TDG24");
+            tickersIOL.Add("BA37D");
+            tickersIOL.Add("BB37D");
+            tickersIOL.Add("NDT25");
+            tickersIOL.Add("PR17");
+            tickersIOL.Add("TZX26");
+            tickersIOL.Add("TZX27");
+            tickersIOL.Add("TZX28");
             //Acciones
             tickersIOL.Add("-ACCs-");
 
@@ -590,27 +596,27 @@ namespace BOTArbitradorPorPlazo
             grdPanel.Columns.Clear();
             grdPanel.Rows.Clear();
             grdPanel.Columns.Add("Ticker", "Ticker");
-            grdPanel.Columns[0].Width = 70;
+            grdPanel.Columns[0].Width = 100;
             grdPanel.Columns[0].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             grdPanel.Columns.Add("Momento", "Momento");
-            grdPanel.Columns[1].Width = 70;
+            grdPanel.Columns[1].Width = 100;
             grdPanel.Columns[1].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             grdPanel.Columns.Add("QVCI", "QVCI");
-            grdPanel.Columns[2].Width = 70;
+            grdPanel.Columns[2].Width = 100;
             grdPanel.Columns[2].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             grdPanel.Columns.Add("PVCI", "PVCI");
-            grdPanel.Columns[3].Width = 70;
+            grdPanel.Columns[3].Width = 100;
             grdPanel.Columns[3].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             grdPanel.Columns.Add("PC24", "PC24");
-            grdPanel.Columns[4].Width = 70;
+            grdPanel.Columns[4].Width = 100;
             grdPanel.Columns[4].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             grdPanel.Columns.Add("QC24", "QC24");
-            grdPanel.Columns[5].Width = 70;
+            grdPanel.Columns[5].Width = 100;
             grdPanel.Columns[5].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             grdPanel.Columns.Add("Ratio", "Ratio");
-            grdPanel.Columns[6].Width = 70;
+            grdPanel.Columns[6].Width = 80;
             grdPanel.Columns[6].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             
             grdPanel.RowHeadersWidth = 4;
@@ -816,9 +822,9 @@ namespace BOTArbitradorPorPlazo
                     simbolo == "CUAP" || simbolo == "DICP" || simbolo == "GD29" || simbolo == "GD30" ||
                     simbolo == "GD35" || simbolo == "GD38" || simbolo == "GD41" || simbolo == "GD46" ||
                     simbolo == "PARP" || simbolo == "PR13" || simbolo == "PR15" || simbolo == "TO23" ||
-                    simbolo == "TO26" || simbolo == "T2X2" || simbolo == "T2X3" || simbolo == "T2X4" ||
-                    simbolo == "TX22" || simbolo == "TX23" || simbolo == "TX24" || simbolo == "TX26" ||
-                    simbolo == "TX28" || simbolo == "TDJ23" || simbolo == "TDL23" || simbolo == "TDS23" ||
+                    simbolo == "TO26" || simbolo == "BA37D" || simbolo == "BB37D" || simbolo == "T2X4" ||
+                    simbolo == "TZX26" || simbolo == "TZX27" || simbolo == "TZX27" || simbolo == "TX26" ||
+                    simbolo == "TX28" || simbolo == "NDT25" || simbolo == "PR17" || simbolo == "TDS23" ||
                     simbolo == "TDF24")
                 {
                     esBono = true;
@@ -829,7 +835,7 @@ namespace BOTArbitradorPorPlazo
                 }
 
                 double porcentual = Math.Round(100 - ((Convert.ToDouble(PIV) / Convert.ToDouble(P24C)) * 100), 4);
-                grdPanel.Rows[i].Cells[6].Value = Math.Round(porcentual,2);
+				grdPanel.Rows[i].Cells[6].Value = Math.Round(porcentual,2);
 
                 if (porcentual > 0)
                 {
