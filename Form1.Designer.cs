@@ -244,7 +244,7 @@
 			dataGridViewCellStyle2.Font = new Font("Courier New", 8F);
 			grdPanel.RowsDefaultCellStyle = dataGridViewCellStyle2;
 			grdPanel.RowTemplate.DefaultCellStyle.Font = new Font("Courier New", 8F);
-			grdPanel.RowTemplate.Height = 16;
+			grdPanel.RowTemplate.Height = 20;
 			grdPanel.RowTemplate.ReadOnly = true;
 			grdPanel.ScrollBars = ScrollBars.Vertical;
 			grdPanel.Size = new Size(774, 622);

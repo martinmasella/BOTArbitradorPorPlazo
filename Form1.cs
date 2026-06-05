@@ -315,7 +315,6 @@ namespace BOTArbitradorPorPlazo
             tickersIOL.Add("NOKA");
             tickersIOL.Add("NVDA");
             //AddTicker("87319", "OGZD");
-            tickersIOL.Add("ORAN");
             tickersIOL.Add("ORCL");
             tickersIOL.Add("PBR");
             tickersIOL.Add("PEP");
@@ -349,7 +348,7 @@ namespace BOTArbitradorPorPlazo
             tickersIOL.Add("VZ");
             tickersIOL.Add("WFC");
             tickersIOL.Add("WMT");
-            tickersIOL.Add("X");
+            //tickersIOL.Add("X");
             tickersIOL.Add("XOM");
 
             //Galpones
@@ -364,7 +363,6 @@ namespace BOTArbitradorPorPlazo
             tickersIOL.Add("CTIO");
             //tickersIOL.Add("CVH");
             tickersIOL.Add("EDN");
-            tickersIOL.Add("GAMI");
             //tickersIOL.Add("GCDI");
             //tickersIOL.Add("HARG");
             tickersIOL.Add("LOMA");
@@ -605,18 +603,17 @@ namespace BOTArbitradorPorPlazo
             grdPanel.Columns[2].Width = 100;
             grdPanel.Columns[2].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             grdPanel.Columns.Add("PVCI", "PVCI");
-            grdPanel.Columns[3].Width = 100;
+            grdPanel.Columns[3].Width = 90;
             grdPanel.Columns[3].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             grdPanel.Columns.Add("PC24", "PC24");
-            grdPanel.Columns[4].Width = 100;
+            grdPanel.Columns[4].Width = 90;
             grdPanel.Columns[4].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-
             grdPanel.Columns.Add("QC24", "QC24");
             grdPanel.Columns[5].Width = 100;
             grdPanel.Columns[5].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             grdPanel.Columns.Add("Ratio", "Ratio");
-            grdPanel.Columns[6].Width = 80;
+            grdPanel.Columns[6].Width = 120;
             grdPanel.Columns[6].CellTemplate.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             
             grdPanel.RowHeadersWidth = 4;
@@ -655,11 +652,20 @@ namespace BOTArbitradorPorPlazo
             {
                 cifrasRedondeo = 1;
             }
+			/*
             preventivoCompra = Math.Round(preventivoCompra + ((preventivoCompra / 100) * 0.1), cifrasRedondeo);
             PC = preventivoCompra.ToString().Replace(",", ".");
+            */
+			preventivoCompra = Math.Round(preventivoCompra + ((preventivoCompra / 100) * 0), cifrasRedondeo);
+			PC = preventivoCompra.ToString().Replace(",", ".");
 
-            double preventivoVenta = double.Parse(PV);
+
+			double preventivoVenta = double.Parse(PV);
+            /*
             preventivoVenta = Math.Round(preventivoVenta - ((preventivoVenta / 100) * 0.1), cifrasRedondeo);
+            PV = preventivoVenta.ToString().Replace(",", ".");
+            */
+            preventivoVenta = Math.Round(preventivoVenta - ((preventivoVenta / 100) * 0), cifrasRedondeo);
             PV = preventivoVenta.ToString().Replace(",", ".");
 
             string operacionCompra = await Comprar(simbolo, q, PC);
@@ -835,7 +841,8 @@ namespace BOTArbitradorPorPlazo
                 }
 
                 double porcentual = Math.Round(100 - ((Convert.ToDouble(PIV) / Convert.ToDouble(P24C)) * 100), 4);
-				grdPanel.Rows[i].Cells[6].Value = Math.Round(porcentual,2);
+				grdPanel.Rows[i].Cells[6].Value = porcentual.ToString("0.00") + "%";
+                grdPanel.Rows[i].Cells[6].Style.Font = new Font(grdPanel.Font, FontStyle.Bold);
 
                 if (porcentual > 0)
                 {
