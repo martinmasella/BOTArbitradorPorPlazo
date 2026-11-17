@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using Primary;
 using Primary.Data;
+using System.Globalization;
 using System.Media;
 using System.Net;
 using System.Text;
@@ -12,8 +13,8 @@ namespace BOTArbitradorPorPlazo
 	public partial class frmBOT : Form
 
 	{
-		const string sURL = "https://api.invertironline.com";
-		const string SURLOper = "https://www.invertironline.com";
+		const string sURL = "https://api.iolinversiones.com";
+		static readonly HttpClient httpIOL = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
 		const string sURLVETA = "https://api.veta.xoms.com.ar";
 		const string prefijoPrimary = "MERV - XMEV - ";
 		const string sufijoCI = " - CI";
@@ -154,9 +155,9 @@ namespace BOTArbitradorPorPlazo
 			tickersIOL.Add("GD46");
 
 			//tickersIOL.Add("PBA25");
-			tickersIOL.Add("TX26");
+			//tickersIOL.Add("TX26");
 			tickersIOL.Add("TX28");
-			tickersIOL.Add("TO26");
+			//tickersIOL.Add("TO26");
 			tickersIOL.Add("BA37D");
 			tickersIOL.Add("BB37D");
 			tickersIOL.Add("NDT25");
@@ -447,34 +448,24 @@ namespace BOTArbitradorPorPlazo
 			{
 				if (expires == DateTime.MinValue)
 				{
-					string postData = "username=" + txtUsuarioIOL.Text + "&password=" + txtClaveIOL.Text + "&grant_type=password";
-					string response;
-					response = GetResponsePOST(sURL + "/token", postData);
-					dynamic json = JObject.Parse(response);
-					bearer = "Bearer " + json.access_token;
-					expires = DateTime.Now.AddSeconds((double)json.expires_in - 300);
-					refresh = json.refresh_token;
-					ToLog(bearer);
+					var body = new JObject
+					{
+						["grant_type"] = "password",
+						["username"] = txtUsuarioIOL.Text,
+						["password"] = txtClaveIOL.Text
+					};
+					AplicarToken(SendIOL("POST", sURL + "/auth/token", body, null, false), 300);
 				}
 				else
 				{
 					if (DateTime.Now >= expires)
 					{
-						string postData = "refresh_token=" + refresh + "&grant_type=refresh_token";
-						string response;
-						response = GetResponsePOST(sURL + "/token", postData);
-						if (response.Contains("Error") || response.Contains("excedi"))
+						var body = new JObject
 						{
-							ToLog(response);
-						}
-						else
-						{
-							dynamic json = JObject.Parse(response);
-							bearer = "Bearer " + json.access_token;
-							expires = DateTime.Now.AddSeconds((double)json.expires_in - 100);
-							refresh = json.refresh_token;
-							ToLog(bearer);
-						}
+							["grant_type"] = "refresh_token",
+							["refresh_token"] = refresh
+						};
+						AplicarToken(SendIOL("POST", sURL + "/auth/token", body, null, false), 100);
 					}
 				}
 			}
@@ -484,51 +475,81 @@ namespace BOTArbitradorPorPlazo
 			}
 
 		}
-		private string GetResponseGET(string sURL, string sHeader)
+		private void AplicarToken(JObject json, int margen)
 		{
-			WebRequest request = WebRequest.Create(sURL);
-			request.Timeout = 10000;
-			request.Method = "GET";
-			request.ContentType = "application/json";
-			request.Headers.Add("Authorization", sHeader);
+			string error = ErrorIOL(json);
+			if (error != null)
+			{
+				ToLog(error);
+				return;
+			}
+			bearer = "Bearer " + (string)json["data"]["access_token"];
+			expires = DateTime.Now.AddSeconds((double)json["data"]["expires_in"] - margen);
+			refresh = (string)json["data"]["refresh_token"];
+			ToLog(bearer);
+		}
 
+		private JObject SendIOL(string method, string url, JObject body = null, string idempotencyKey = null, bool conToken = true)
+		{
+			string content;
 			try
 			{
-				WebResponse response = request.GetResponse();
-				return new StreamReader(response.GetResponseStream()).ReadToEnd();
+				using var request = new HttpRequestMessage(new HttpMethod(method), url) { Version = HttpVersion.Version20 };
+				if (conToken && bearer != null)
+				{
+					request.Headers.TryAddWithoutValidation("Authorization", bearer);
+				}
+				if (idempotencyKey != null)
+				{
+					request.Headers.Add("X-Idempotency-Key", idempotencyKey);
+				}
+				if (body != null)
+				{
+					request.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+				}
+				using HttpResponseMessage response = httpIOL.SendAsync(request).GetAwaiter().GetResult();
+				content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+				if (content == string.Empty && !response.IsSuccessStatusCode)
+				{
+					content = (int)response.StatusCode + " " + response.ReasonPhrase;
+				}
 			}
 			catch (Exception e)
 			{
-				return e.Message;
+				return CrearErrorIOL(e.Message);
+			}
+
+			try
+			{
+				return JObject.Parse(content);
+			}
+			catch (Exception)
+			{
+				return CrearErrorIOL(content);
 			}
 		}
 
-		private string GetResponsePOST(string sURL, string sData)
+		private JObject CrearErrorIOL(string mensaje)
 		{
-			WebRequest request = WebRequest.Create(sURL);
-			var data = Encoding.ASCII.GetBytes(sData);
-			request.Timeout = 10000;
-			request.Method = "POST";
-			request.ContentType = "application/x-www-form-urlencoded";
-			request.ContentLength = sData.Length;
+			return new JObject
+			{
+				["data"] = null,
+				["error"] = new JObject { ["message"] = mensaje }
+			};
+		}
 
-			if (bearer != null)
+		private string ErrorIOL(JObject json)
+		{
+			JToken error = json["error"];
+			if (error == null || error.Type == JTokenType.Null)
 			{
-				request.Headers.Add("Authorization", bearer);
+				return null;
 			}
-			try
+			if (error.Type == JTokenType.Object)
 			{
-				using (var stream = request.GetRequestStream())
-				{
-					stream.Write(data, 0, data.Length);
-				}
-				WebResponse response = request.GetResponse();
-				return new StreamReader(response.GetResponseStream()).ReadToEnd();
+				return (string)error["message"] ?? error.ToString();
 			}
-			catch (Exception e)
-			{
-				return e.Message;
-			}
+			return error.ToString();
 		}
 
 
@@ -708,14 +729,15 @@ namespace BOTArbitradorPorPlazo
 				for (int i = 1; i <= intentos; i++)
 				{
 					ToLog("Intento de compra " + i.ToString() + " de " + simbolo);
-					estadooperacion = GetEstadoOperacion(operacionCompra);
-					if (estadooperacion == "terminada")
+					estadooperacion = GetEstadoOperacion(operacionCompra, simbolo);
+					if (estadooperacion == "completed")
 					{
 						break;
 					}
 					Application.DoEvents();
+					await Task.Delay(250);
 				}
-				if (estadooperacion == "terminada")
+				if (estadooperacion == "completed")
 				{
 					ToLog("Compra OK " + simbolo);
 					Vender(simbolo, q, PV);
@@ -723,18 +745,10 @@ namespace BOTArbitradorPorPlazo
 				else
 				{
 					ToLog("Venció la compra de " + simbolo);
-					WebRequest request = WebRequest.Create(sURL + "/api/v2/operaciones/" + operacionCompra);
-					request.Method = "DELETE";
-					request.ContentType = "application/json";
-					request.Headers.Add("Authorization", bearer);
-
-					try
+					string errorCancelacion = ErrorIOL(SendIOL("DELETE", sURL + "/broker/orders/" + operacionCompra));
+					if (errorCancelacion != null)
 					{
-						WebResponse response = request.GetResponse();
-					}
-					catch (Exception e)
-					{
-						ToLog(e.Message);
+						ToLog(errorCancelacion);
 					}
 				}
 			}
@@ -743,19 +757,27 @@ namespace BOTArbitradorPorPlazo
 				ToLog("Error en compra de " + simbolo);
 			}
 		}
-		private string GetEstadoOperacion(string idoperacion)
+		private string GetEstadoOperacion(string idoperacion, string simbolo)
 		{
-			string response;
-			response = GetResponseGET(sURL + "/api/v2/operaciones/" + idoperacion, bearer);
-			if (response.Contains("Error") || response.Contains("Se exced"))
+			string hoy = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+			JObject json = SendIOL("GET", sURL + "/broker/accounts/activities/operations?start_date=" + hoy + "&end_date=" + hoy + "&symbol=" + Uri.EscapeDataString(simbolo));
+			string error = ErrorIOL(json);
+			if (error != null)
 			{
+				ToLog(error);
 				return "Error";
 			}
-			else
+			if (json["data"] is JArray operaciones)
 			{
-				dynamic json = JObject.Parse(response);
-				return json.estadoActual.Value;
+				foreach (JToken operacion in operaciones)
+				{
+					if ((string)operacion["order_id"] == idoperacion)
+					{
+						return (string)operacion["status"];
+					}
+				}
 			}
+			return "Error";
 		}
 
 		private async Task<string> Comprar(string simbolo, string cantidad, string precio)
@@ -764,36 +786,7 @@ namespace BOTArbitradorPorPlazo
 			{
 				ToLog("Comprando " + cantidad + " " + simbolo + " a " + precio);
 				await Task.Run(() => Application.DoEvents());
-				string validez = DateTime.Now.Year + "-" + DateTime.Now.Month + "-" + DateTime.Now.Day + "T17:59:59.000Z";
-				string postData = "mercado=bCBA&simbolo=" + simbolo + "&cantidad=" + cantidad + "&precio=" + precio + "&validez=" + validez + "&plazo=t0";
-				string response;
-				response = GetResponsePOST(sURL + "/api/v2/operar/Comprar", postData);
-				if (response.Contains("Error") || response.Contains("Se exced") || response.Contains("No se puede"))
-				{
-					ToLog(response);
-					return "Error";
-				}
-				else
-				{
-					try
-					{
-						dynamic json = JObject.Parse(response);
-						string operacion = json.numeroOperacion;
-						if (json.ok == "false")
-						{
-							return "Error";
-						}
-						else
-						{
-							return operacion;
-						}
-					}
-					catch (Exception ex)
-					{
-						ToLog(response);
-						return "Error";
-					}
-				}
+				return CrearOrden("buy", simbolo, cantidad, precio, "T0");
 			}
 			else
 			{
@@ -806,19 +799,42 @@ namespace BOTArbitradorPorPlazo
 		{
 			ToLog("Vendiendo " + cantidad + " " + simbolo + " a " + precio);
 			Application.DoEvents();
-			string validez = DateTime.Now.Year + "-" + DateTime.Now.Month + "-" + DateTime.Now.Day + "T17:59:59.000Z";
-			string postData = "mercado=bCBA&simbolo=" + simbolo + "&cantidad=" + cantidad + "&precio=" + precio + "&validez=" + validez + "&plazo=t1";
-			string response;
-			response = GetResponsePOST(sURL + "/api/v2/operar/Vender", postData);
-			dynamic json = JObject.Parse(response);
-			string operacion = json.numeroOperacion;
-			if (json.ok == "false")
+			return CrearOrden("sell", simbolo, cantidad, precio, "T1");
+		}
+
+		private string CrearOrden(string side, string simbolo, string cantidad, string precio, string plazo)
+		{
+			try
 			{
-				return "Error";
+				var body = new JObject
+				{
+					["symbol"] = simbolo,
+					["market_id"] = "BCBA",
+					["side"] = side,
+					["order_type"] = "limit",
+					["quantity"] = int.Parse(cantidad),
+					["limit_price"] = decimal.Parse(precio, CultureInfo.InvariantCulture),
+					["due_date"] = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+					["settlement_term"] = plazo
+				};
+				JObject json = SendIOL("POST", sURL + "/broker/orders", body, Guid.NewGuid().ToString());
+				string error = ErrorIOL(json);
+				if (error != null)
+				{
+					ToLog(error);
+					return "Error";
+				}
+				if (!(bool)json["data"]["successful_purchase"])
+				{
+					ToLog(json["data"].ToString());
+					return "Error";
+				}
+				return (string)json["data"]["order_id"];
 			}
-			else
+			catch (Exception ex)
 			{
-				return operacion;
+				ToLog(ex.Message);
+				return "Error";
 			}
 		}
 
